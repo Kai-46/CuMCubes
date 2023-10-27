@@ -8,13 +8,12 @@ from torch.utils.cpp_extension import BuildExtension, CUDAExtension
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-def get_requirements(filename: str="requirements.txt") -> List[str]:
+def get_requirements(filename: str = "requirements.txt") -> List[str]:
     assert os.path.exists(filename), f"{filename} not exists"
     with open(filename, "r") as f:
         content = f.read()
     lines = content.split("\n")
-    requirements_list = list(
-        filter(lambda x: x != "" and not x.startswith("#"), lines))
+    requirements_list = list(filter(lambda x: x != "" and not x.startswith("#"), lines))
     return requirements_list
 
 
@@ -35,7 +34,8 @@ def get_extensions():
                 "cumcubes/src/cumcubes_kernel.cu",
             ],
             include_dirs=[os.path.join(ROOT_DIR, "cumcubes", "include")],
-            optional=False),
+            optional=False,
+        ),
     ]
     return ext_modules
 

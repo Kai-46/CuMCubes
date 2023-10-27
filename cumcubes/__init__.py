@@ -12,9 +12,9 @@ from .utils import Timer, scale_to_bound
 def marching_cubes(
     density_grid: Union[torch.Tensor, np.ndarray],
     thresh: float,
-    scale: Optional[Union[float, Sequence]]=None,
-    verbose: bool=False,
-    cpu: bool=False
+    scale: Optional[Union[float, Sequence]] = None,
+    verbose: bool = False,
+    cpu: bool = False,
 ) -> Tuple[torch.Tensor]:
     """python wrapper of marching cubes
 
@@ -46,8 +46,10 @@ def marching_cubes(
         try:
             import mcubes
         except:
-            raise ImportError("the cpu mode cumcubes is the wrapper of `mcubes`, please install the mcubes")
-        
+            raise ImportError(
+                "the cpu mode cumcubes is the wrapper of `mcubes`, please install the mcubes"
+            )
+
         density_grid = density_grid.detach().cpu().numpy()
         vertices, faces = mcubes.marching_cubes(density_grid, thresh)
         offset = np.array(lower)
@@ -58,15 +60,20 @@ def marching_cubes(
         faces = torch.tensor(faces.astype(np.int64))
     else:
         # process density_grid
-        if isinstance(density_grid, np.ndarray): density_grid = torch.tensor(density_grid)
+        if isinstance(density_grid, np.ndarray):
+            density_grid = torch.tensor(density_grid)
         density_grid = density_grid.cuda()
         density_grid = density_grid.to(torch.float32)
 
-        if (density_grid.shape[0] < 2 or density_grid.shape[1] < 2 or density_grid.shape[2] < 2):
+        if (
+            density_grid.shape[0] < 2
+            or density_grid.shape[1] < 2
+            or density_grid.shape[2] < 2
+        ):
             raise ValueError()
 
         vertices, faces = _C.marching_cubes(density_grid, thresh, lower, upper)
-    
+
     if verbose:
         print(f"#vertices={vertices.shape[0]}")
         print(f"#triangles={faces.shape[0]}")
@@ -75,14 +82,14 @@ def marching_cubes(
 
 
 def marching_cubes_func(
-    scale: Optional[Union[float, Sequence]]=None,
-    num_x: int=100,
-    num_y: int=100,
-    num_z: int=100,
-    func: Callable=lambda x, y, z: x**2 + y**2 + z**2,
-    thresh: float=16,
-    verbose: bool=False,
-    cpu: bool=False
+    scale: Optional[Union[float, Sequence]] = None,
+    num_x: int = 100,
+    num_y: int = 100,
+    num_z: int = 100,
+    func: Callable = lambda x, y, z: x**2 + y**2 + z**2,
+    thresh: float = 16,
+    verbose: bool = False,
+    cpu: bool = False,
 ) -> Tuple[torch.Tensor]:
     """python wrapper of marching cubes via the given function
 
@@ -109,16 +116,13 @@ def marching_cubes_func(
         try:
             import mcubes
         except:
-            raise ImportError("the cpu mode cumcubes is the wrapper of `mcubes`, please install the mcubes")
-        
+            raise ImportError(
+                "the cpu mode cumcubes is the wrapper of `mcubes`, please install the mcubes"
+            )
+
         vertices, faces = mcubes.marching_cubes_func(
-            tuple(lower),
-            tuple(upper),
-            num_x,
-            num_y,
-            num_z,
-            func,
-            thresh)
+            tuple(lower), tuple(upper), num_x, num_y, num_z, func, thresh
+        )
 
         vertices = torch.tensor(vertices)
         faces = torch.tensor(faces.astype(np.int64))
@@ -130,8 +134,10 @@ def marching_cubes_func(
         X, Y, Z = torch.meshgrid(x, y, z, indexing="ij")
         sample_points = torch.stack((X, Y, Z), dim=-1).reshape(num_x, num_y, num_z, 3)
 
-        vertices, faces = _C.marching_cubes_func(sample_points, thresh, lower, upper, func)
-    
+        vertices, faces = _C.marching_cubes_func(
+            sample_points, thresh, lower, upper, func
+        )
+
     if verbose:
         print(f"#vertices={vertices.shape[0]}\n")
         print(f"#triangles={faces.shape[0]}\n")
@@ -142,9 +148,9 @@ def marching_cubes_func(
 def save_mesh(
     vertices: Union[torch.Tensor, np.ndarray],
     faces: Union[torch.Tensor, np.ndarray],
-    colors: Optional[Union[torch.Tensor, np.ndarray]]=None,
-    filename: Union[str, Path]="temp.ply",
-    verbose: bool=False
+    colors: Optional[Union[torch.Tensor, np.ndarray]] = None,
+    filename: Union[str, Path] = "temp.ply",
+    verbose: bool = False,
 ) -> None:
     """save mesh into the given filename
 
@@ -162,8 +168,10 @@ def save_mesh(
     if isinstance(filename, Path):
         filename = str(filename)
 
-    if isinstance(vertices, np.ndarray): vertices = torch.tensor(vertices)
-    if isinstance(faces, np.ndarray): faces = torch.tensor(faces)
+    if isinstance(vertices, np.ndarray):
+        vertices = torch.tensor(vertices)
+    if isinstance(faces, np.ndarray):
+        faces = torch.tensor(faces)
 
     # process colors
     if colors is None:
@@ -176,7 +184,7 @@ def save_mesh(
         _C.save_mesh_as_ply(filename, vertices, faces, colors)
     else:
         raise NotImplementedError()
-    
+
     if verbose:
         print(f"save as {filename} successfully!")
 
